@@ -10,7 +10,9 @@ import { SearchInput } from "./search-input";
 export async function Products() {
   const productsListResponse = await listProducts();
 
-  const products = productsListResponse.isRight() ? productsListResponse.value.products : [];
+  const products = productsListResponse.isRight()
+    ? productsListResponse.value.products
+    : [];
 
   return (
     <div className="w-full flex justify-center flex-col h-full">
@@ -37,13 +39,10 @@ export async function Products() {
         </div>
       </div>
 
-      <div className="mb-4 border-b border-1"></div>
+      <div className="mb-10 border-b border-1"></div>
       <section>
         <Suspense fallback={null}>
-          <ProductList
-            data-testid="products"
-            products={products}
-          />
+          <ProductList data-testid="products" products={products} />
         </Suspense>
       </section>
     </div>
