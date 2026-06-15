@@ -1,18 +1,28 @@
 import { MagnifyingGlassIcon } from "@heroicons/react/16/solid";
-import { SearchInput } from "./search-input";
 import { Suspense } from "react";
-import { InputSkeleton } from "../input/input-skeleton";
 
-export function Products() {
+import { listProducts } from "@/app/http/list-products";
+
+import { InputSkeleton } from "../input/input-skeleton";
+import { ProductList } from "./product-list";
+import { SearchInput } from "./search-input";
+
+export async function Products() {
+  const productsListResponse = await listProducts();
+
+  const products = productsListResponse.isRight() ? productsListResponse.value.products : [];
 
   return (
     <div className="w-full flex justify-center flex-col h-full">
       <div className="border-gray-500 w-full max-w-[700px] mx-auto mb-4">
-        <label htmlFor="search" className="block text-sm/6 font-medium text-gray-900">
+        <label
+          htmlFor="search"
+          className="block text-sm/6 font-medium text-gray-900"
+        >
           Pesquisa
         </label>
         <div className="mt-2 grid grid-cols-1">
-          <Suspense fallback={<InputSkeleton/>}>
+          <Suspense fallback={<InputSkeleton />}>
             <SearchInput
               id="search"
               name="search"
@@ -28,9 +38,14 @@ export function Products() {
       </div>
 
       <div className="mb-4 border-b border-1"></div>
-      <div>
-        Produtos aqui
-      </div>
+      <section>
+        <Suspense fallback={null}>
+          <ProductList
+            data-testid="products"
+            products={products}
+          />
+        </Suspense>
+      </section>
     </div>
-  )
+  );
 }
