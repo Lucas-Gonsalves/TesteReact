@@ -11,7 +11,7 @@ export async function listProducts(): Promise<
   try {
     const url = new URL("/api/products", clientEnv.NEXT_PUBLIC_API_URL);
 
-    const response = await fetch(url);
+    const response = await fetch(url, { cache: "no-store" });
 
     if (!response.ok) {
       return left(new Error("Falhou ao buscar produtos"));
