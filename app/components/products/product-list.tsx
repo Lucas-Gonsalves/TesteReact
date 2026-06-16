@@ -53,7 +53,7 @@ export function ProductList({ products = [], ...props }: ProductListProps) {
     >
       {filteredProducts.map((product) => (
         <ProductCard
-          id="product"
+          data-testid="product"
           key={`key_of_product_${product.name}`}
           product={product}
         />

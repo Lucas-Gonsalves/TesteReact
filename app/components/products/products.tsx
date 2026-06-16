@@ -29,7 +29,7 @@ export async function Products() {
               id="search"
               name="search"
               type="search"
-              placeholder="Pesquisar produtos..."
+              placeholder="Pesquisar produtos"
             />
           </Suspense>
           <MagnifyingGlassIcon
