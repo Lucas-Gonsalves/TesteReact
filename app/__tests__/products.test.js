@@ -1,11 +1,74 @@
 import "@testing-library/jest-dom";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
-import Products from "../components/Products";
+import { __resetQueryState } from "nuqs";
+import { Products } from "../components/products";
+
+jest.mock("nuqs", () => {
+  const React = jest.requireActual("react");
+
+  const queryState = new Map();
+  const listeners = new Set();
+
+  function notifyListeners() {
+    listeners.forEach((listener) => listener());
+  }
+
+  function getParserDefaultValue(parser) {
+    return parser?.defaultValue ?? "";
+  }
+
+  return {
+    __resetQueryState: () => {
+      queryState.clear();
+      notifyListeners();
+    },
+    parseAsString: {
+      withDefault(defaultValue) {
+        return {
+          defaultValue,
+          withOptions() {
+            return { defaultValue };
+          },
+        };
+      },
+    },
+    useQueryState(key, parser) {
+      const [value, setValue] = React.useState(
+        () => queryState.get(key) ?? getParserDefaultValue(parser),
+      );
+
+      React.useEffect(() => {
+        function listener() {
+          setValue(queryState.get(key) ?? getParserDefaultValue(parser));
+        }
+
+        listeners.add(listener);
+
+        return () => {
+          listeners.delete(listener);
+        };
+      }, [key, parser]);
+
+      function updateValue(nextValue) {
+        queryState.set(key, nextValue);
+        setValue(nextValue);
+        notifyListeners();
+      }
+
+      return [value, updateValue];
+    },
+  };
+});
+
+async function renderProducts() {
+  render(await Products());
+}
 
 // Mock fetch for testing
 beforeAll(() => {
   global.fetch = jest.fn(() =>
     Promise.resolve({
+      ok: true,
       json: () =>
         Promise.resolve([
           {
@@ -96,10 +159,11 @@ beforeAll(() => {
 describe("Products", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    __resetQueryState();
   });
 
   it("mostra um input", async () => {
-    render(<Products />);
+    await renderProducts();
 
     const input = await waitFor(() =>
       screen.getByPlaceholderText("Pesquisar produtos")
@@ -109,7 +173,7 @@ describe("Products", () => {
   });
 
   it("mostra todos os produtos caso não há nenhuma pesquisa", async () => {
-    render(<Products />);
+    await renderProducts();
 
     const results = await waitFor(() => screen.getAllByTestId("product"));
 
@@ -117,7 +181,7 @@ describe("Products", () => {
   });
 
   it("mostra os produtos que contém a palavra pesquisada", async () => {
-    render(<Products />);
+    await renderProducts();
 
     const input = await waitFor(() =>
       screen.getByPlaceholderText("Pesquisar produtos")
@@ -137,7 +201,7 @@ describe("Products", () => {
   });
 
   it("mostra mensagem de erro caso não encontre nenhum produto", async () => {
-    render(<Products />);
+    await renderProducts();
 
     const input = await waitFor(() =>
       screen.getByPlaceholderText("Pesquisar produtos")
@@ -153,7 +217,7 @@ describe("Products", () => {
   });
 
   it("mostra filtro aditivo corretamente", async () => {
-    render(<Products />);
+    await renderProducts();
 
     const input = await waitFor(() =>
       screen.getByPlaceholderText("Pesquisar produtos")
@@ -167,7 +231,7 @@ describe("Products", () => {
   });
 
   it("DESAFIO: mostra pesquisa correta por carros", async () => {
-    render(<Products />);
+    await renderProducts();
 
     const input = await waitFor(() =>
       screen.getByPlaceholderText("Pesquisar produtos")
